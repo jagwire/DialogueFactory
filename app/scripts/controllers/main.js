@@ -113,8 +113,10 @@ angular.module('dialogueFactoryApp')
 		
 	});
 	
-	$scope.$watch('conversation.turns', function(newVal, oldVal) {
+	$scope.$watch('currentTurn', function(newVal, oldVal) {
 		console.log("turns changed!");
+		var newConvo = JSON.stringify($scope.conversation, undefined, 2);
+		$scope.conversation_json = newConvo;
 	}); 
 
 	
