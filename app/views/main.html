@@ -1,8 +1,16 @@
+
+<style>
+.ace_editor {
+	height: 600px;
+	width: auto;
+}
+</style>
+
 <div class="header">
   <ul class="nav nav-pills pull-right">
-    <li><a ng-href="#">New</a></li>
-    <li><a ng-href="#">Save</a></li>
-    <li><a ng-href="$">Settings</a></li>
+    <li><a href ng-click=newConversation()>New</a></li>
+    <li><a href ng-click=saveConversation()>Save</a></li>
+    <li><a ng-href="#">Settings</a></li>
   </ul>
   <h3 class="text-muted">DialogueFactory</h3>
 </div>
@@ -21,78 +29,126 @@
 <tabset>
 	<tab heading="factory">
 	
-		<div style="border-radius:25px;height:auto;background-color:#eee">
-			<carousel>
-				<slide style="border-radius: 25px; height: auto; background-color: #eee" ng-repeat="message in messages">
-					<button class="btn btn-primary pull-left" style="margin-left: 2%; margin-top: 2%" ng-click=goToPrevious()>Previous</button>
-					<h1 style="text-align: center">Turn: {{currentTurn.id}}</h1>
-					<form class="form-horizontal" role="form">
-					<br/><br/><br/><br/>
-						<div class="form-group">
-							<div class="btn-group">
-							  <div class="btn-group">
-								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-								  {{currentTurn.actor}}
-								  <span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu">
-								  <li ng-repeat="name in npcNames"><a href ng-click=selectNPC($index)>{{name}}</a></li>
-								</ul>
-							  </div>
-							  <div class="btn-group">
-								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-								  {{currentTurn.audioClip}}
-								  <span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu">
-								  <li ng-repeat="clip in audioclips"><a href ng-click=selectAudioClip($index)>{{clip}}</a></li>
-								</ul>
-							  </div>
-							</div>
-							<br/><br/>
-							<div class="row">
-								<div class="col-sm-2"></div>
-								<div class="col-sm-8">
-									<textarea id="npc-response" class="form-control" ng-model=currentTurn.text></textarea>
+		<div ng-show="npcNames.length == 0">
+			<div class="jumbotron">
+			<h1>Get Started</h1>
+			<p>Welcome to the Dialogue Factory...</p>
+			<button type="button" class="btn btn-success" ng-click=newConversation()>Let's Go!</button>
+			</div>
+		</div>
+		<div ng-hide="npcNames.length == 0">
+	
+			<div style="border-radius:25px;height:auto;background-color:#eee">
+				<carousel>
+					<slide style="border-radius: 25px; height: auto; background-color: #eee" ng-repeat="message in messages">
+						<button class="btn btn-primary pull-left" style="margin-left: 2%; margin-top: 2%" ng-click=goToPrevious()>Previous</button>
+						<h1 style="text-align: center">Turn: {{currentTurn.id}}</h1>
+						<form class="form-horizontal" role="form">
+						<br/><br/><br/><br/>
+							<div class="form-group">
+								<div class="btn-group">
+								  <div class="btn-group">
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+									  {{currentTurn.actor}}
+									  <span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu">
+									  <li ng-repeat="name in npcNames"><a href ng-click=selectNPC($index)>{{name}}</a></li>
+									</ul>
+								  </div>
+								  <div class="btn-group">
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+									  {{currentTurn.audioClip}}
+									  <span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu">
+									  <li ng-repeat="clip in audioclips"><a href ng-click=selectAudioClip($index)>{{clip}}</a></li>
+									</ul>
+								  </div>
+								</div>
+								<br/><br/>
+								<div class="row">
+									<div class="col-sm-2"></div>
+									<div class="col-sm-8">
+										<textarea id="npc-response" class="form-control" ng-model=currentTurn.text></textarea>
+									</div>
 								</div>
 							</div>
-						</div>
 						
 						
-						<div class="form-group" ng-repeat="response in responses">
+							<div class="form-group" ng-repeat="response in responses">
 
-							<label class="col-sm-3 control-label"for="response1">{{response}}</label>
-							<div class="col-sm-7">
-								<input id="response1" class="form-control" type="text" ng-model=currentTurn.choices[$index].text>
+								<label class="col-sm-3 control-label"for="response1">{{response}}</label>
+								<div class="col-sm-7">
+									<input id="response1" class="form-control" type="text" ng-model=currentTurn.choices[$index].text>
+								</div>
+								<div class="col-sm-2">
+									<button class="btn btn-success" ng-click=goToNext($index)><span class="glyphicon glyphicon-arrow-right"></span></button>
+								</div>
 							</div>
-							<div class="col-sm-2">
-								<button class="btn btn-success" ng-click=goToNext($index)><span class="glyphicon glyphicon-arrow-right"></span></button>
-							</div>
-						</div>
 
-					</form>		
+						</form>		
 
-					<br/><br/><br/><br/>
-				</slide>
-			</carousel>
+						<br/><br/><br/><br/>
+					</slide>
+				</carousel>
+			</div>
 		</div>
 	</tab>
 	<tab heading="graph">
-		<div id="canvas"></div>
-		<br/><br/><br/>
-		<button type="button" class="btn btn-primary" ng-click=buildGraph()>Build Graph!</build>
 		
 	</tab>
-	
 </tabset>
 
 
-
-
-
-
+<div ng-model=conversation_json ui-ace="{theme: 'solarized_dark', mode: 'json'}">asdf</div>
 
 
 <div class="footer">
   <p>ThereLabs - University of Missouri (Copyright 2014)</p>
 </div>
+
+<script type="text/ng-template" id="NewConversationModal.html">
+	
+	<div class="modal-header">
+		New Conversation
+	</div>
+	
+	<div class="modal-body form-group">
+		<label class="col-sm-2 control-label" for="actor1">Actor</label>
+		<div class="col-sm-8">
+			<input class="form-control" type="text" ng-model=form.actorName>
+		</div>
+		
+	</div>
+	
+	<div class="modal-footer">
+		<button class="btn btn-primary pull-left" ng-click=ok()>OK</button>
+		<button class="btn btn-seconary pull-right" ng-click=cancel()>Cancel</button>
+	</div>
+</script>
+
+<script type="text/ng-template" id="SaveConversationModal.html">
+	<div class="modal-header">
+		<h3>Save Conversation</h3>
+	</div>
+	
+	<div class="modal-body">
+		<!-- show JSON here -->
+		<textarea ui-codemirror="{ lineNumbers:true, mode: 'application/json', autoCloseTags: true }"></textarea>
+	</div>
+	<div class="modal-footer">
+		<button class="btn btn-primary" ng-click=ok()>OK</button>
+		<button class="btn btn-secondary" ng-click=cancel()>Cancel</button>
+	</div>
+	
+</script>
+
+
+
+
+
+<!-- 
+
+<textarea ui-codemirror="{ lineNumbers:true, mode: {name: 'javascript',json: true}, autoCloseTags: true, lineWrapping: true }" ng-model=conversation_json></textarea>
+ -->

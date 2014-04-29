@@ -5,7 +5,9 @@ angular
     'ngCookies',
     'ngResource',
     'ngRoute',
-    'ui.bootstrap'
+    'ui.bootstrap',
+    'ui.codemirror',
+    'ui.ace'
   ])
   .config(function ($routeProvider) {
     $routeProvider

@@ -5,7 +5,6 @@ function Actor() {
 	this.name = "";
 	this.image = "";
 	this.id = -1;
-	this.responsesToRudeness = [];
 }
 
 function ActorFactory() {
@@ -14,6 +13,7 @@ function ActorFactory() {
 		var actor = new Actor();
 		ids += 1;
 		actor.id = ids;
+		actor["responses-to-rudeness"] = ["na"];
 		return actor;
 	};
 }
@@ -27,6 +27,18 @@ function ConversationFactory() {
 	this.create = function() {
 		return new Conversation();
 	};
+}
+
+function getActorIDByValueFromConversation(conversation, actorName) {
+	console.log("Looking for "+actorName);
+	for(var i in conversation.actors) {
+		console.log(i+"->"+conversation.actors[i].name);
+		var actor = conversation.actors[i].name;
+		if(actor === actorName) {
+			return i;
+		}
+	}
+	return -1;
 }
 
 function ConversationTurn() {
@@ -68,42 +80,19 @@ function TurnFactory() {
 	};
 }
 
-var width = 300;
-var height = 400;
-
-function buildGraph(conversation) {
-	var g = new Graph();
-	
-	for(var i in conversation.turns) {
-		var turn = conversation.turns[i];
-		g.addNode(turn.id);
-		
-		for(var j in turn.choices) {
-			if(turn.choices[j].next === -1) { continue; }
-			
-			g.addEdge(turn.id, turn.choices[j].next);
-		}
-	}
-	
-	var layouter = new Graph.Layout.Spring(g);
-	layouter.layout();
-	
-	var renderer = new Graph.Renderer.Raphael('canvas', g, 300, 400);
-	renderer.draw();
-	
-	var redraw = function() {
-		layouter.layout();
-		renderer.draw();
-	};
-}
-
 
 angular.module('dialogueFactoryApp')
-  .controller('MainCtrl', function ($scope) {
+  .controller('MainCtrl', function ($scope, $modal) {
+  
+  
+  	$scope.aceLoaded = function(_editor) {
+  		console.log("ACE HAS BEEN LOADED!");	
+  	};
+  
     $scope.responses = ['First', 'Second', 'Third', 'Fourth'];
     
     $scope.messages = [1, 2, 3, 4, 5];
-    $scope.npcNames = ["Dr Topos",  "Colonel", "Dr Lang"];
+    $scope.npcNames = [];
     $scope.audioclips = ["1.mp3", "2.mp3", "3.mp3"];
     
     $scope.selectedNPC = $scope.npcNames[0];
@@ -116,10 +105,18 @@ angular.module('dialogueFactoryApp')
 	$scope.selectAudioClip = function(index) {
 		$scope.currentTurn.audioClip = $scope.audioclips[index];
 	};
+
+	$scope.conversation_json = "{}";
+	$scope.$watch('conversation', function(newVal, oldVal) {
+		var newConvo = JSON.stringify(newVal, undefined, 2);
+		$scope.conversation_json = newConvo;
+		
+	});
 	
-	$scope.buildGraph = function() {
-		buildGraph($scope.conversation);	
-	};
+	$scope.$watch('conversation.turns', function(newVal, oldVal) {
+		console.log("turns changed!");
+	}); 
+
 	
 	//create current turn
 	//refactor this into service.
@@ -129,6 +126,8 @@ angular.module('dialogueFactoryApp')
 	$scope.currentTurn =  tFactory.create(-1);
 	
 	$scope.applyCurrentTurn = function() {
+	
+		$scope.currentTurn.actor = getActorIDByValueFromConversation($scope.conversation, $scope.currentTurn.actor);
 		if($scope.currentTurn.id === 0)
 		{
 			$scope.conversation.turns.push($scope.currentTurn);
@@ -173,4 +172,88 @@ angular.module('dialogueFactoryApp')
 		}
 		
 	};
+	
+	$scope.saveConversation = function() {
+		console.log("save conversation pressed!");
+			
+		var SaveConversationModalCtrl = function($scope, $modalInstance, payload) {
+			$scope.form = {};
+			console.log("Modal Initialized!");
+			console.log(payload);
+			$scope.form.payload = payload;
+			$scope.form.options = {
+				lineNumbers: true,
+				readOnly: false,
+				mode: 'javascript'
+			};
+
+
+			$scope.ok = function() {
+				console.log("ok pressed!");
+				$modalInstance.close();
+			};
+			
+			$scope.cancel = function() {
+				console.log("cancel pressed");
+				$modalInstance.dismiss('cancel');
+			};
+		};
+		
+		var modalInstance = $modal.open({
+			templateUrl: 'SaveConversationModal.html',
+			controller: SaveConversationModalCtrl,
+			resolve: {
+				payload: function() {
+					return JSON.stringify($scope.conversation);
+				}
+			}
+		});
+		
+		modalInstance.result.then(function() {
+			//don't do anything
+		}, function() {
+		
+		});
+	};
+	
+	$scope.newConversation = function() {
+		console.log("new conversation pressed!");
+		var NewConversationModalCtrl = function($scope, $modalInstance) {
+			$scope.form = {};
+			$scope.form.actorName=" ";
+			
+			$scope.ok = function() {
+				console.log("ok pressed!");
+				$modalInstance.close($scope.form);
+			};
+			
+			$scope.cancel = function() {
+				console.log("cancel pressed!");
+				$modalInstance.dismiss('cancel');
+			};
+		};
+		
+		var modalInstance = $modal.open({
+			templateUrl: 'NewConversationModal.html',
+			controller: NewConversationModalCtrl
+	
+		});
+		
+		modalInstance.result.then(function(form) {
+			var actorName = form.actorName;
+			
+			//create new actor from actorName
+			var aFactory = new ActorFactory();
+			var actor = aFactory.create();
+			actor.name = actorName;	
+			
+			var cFactory = new ConversationFactory();
+			$scope.conversation = cFactory.create();
+			$scope.conversation.actors.push(actor);
+			$scope.npcNames.push(actorName);
+		}, function() {
+			//dismissal 
+		});
+	
+	};	
   });
