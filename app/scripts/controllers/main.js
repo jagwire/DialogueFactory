@@ -125,7 +125,7 @@ function getTurnByID(conversation, id) {
 
 function ConversationTurn() {
 	this.id = -1;
-	this.actor = -1;
+	this.actor = "";
 	this.audioClip = "";
 	this.text = "";
 	this.previousTurnID = -1;
@@ -194,11 +194,14 @@ angular.module('dialogueFactoryApp')
     $scope.npcNames = [];
     $scope.audioclips = ["1.mp3", "2.mp3", "3.mp3"];
     
-    $scope.selectedNPC = $scope.npcNames[0];
+    $scope.selectedNPC = "";
 	$scope.selectedAudioClip = $scope.audioclips[0];
 	
 	$scope.selectNPC = function(index) {
+		console.log("SELECTED: "+$scope.npcNames[index]);
 		$scope.currentTurn.actor = $scope.npcNames[index];
+		console.log("RETURNING: "+$scope.npcNames[index]);
+		$scope.selectedNPC = $scope.npcNames[index];
 	};
 	
 	$scope.selectAudioClip = function(index) {
@@ -234,16 +237,23 @@ angular.module('dialogueFactoryApp')
 	$scope.currentTurn =  tFactory.create(-1);
 	
 	$scope.applyCurrentTurn = function() {
-	
-		$scope.currentTurn.actor = parseInt(getActorIDByValueFromConversation($scope.conversation, $scope.currentTurn.actor));
-		if($scope.currentTurn.id === 0)
-		{
-			$scope.conversation.turns.push($scope.currentTurn);
-		} else if($scope.conversation.turns.length <= $scope.currentTurn.id) {
+		
+		console.log("OLD CURRENT TURN ACTOR: "+$scope.selectedNPC);
+		if(typeof $scope.selectedNPC === "string") {
+			$scope.currentTurn.actor = parseInt(getActorIDByValueFromConversation($scope.conversation, $scope.selectedNPC));
+		}
+		console.log("NEW CURRENT TURN ACTOR: "+$scope.currentTurn.actor);
+		// if($scope.currentTurn.id === 0)
+// 		{
+// 			$scope.conversation.turns.push($scope.currentTurn);
+// 		} else
+		 if($scope.conversation.turns.length <= $scope.currentTurn.id) {
 			$scope.conversation.turns.push($scope.currentTurn);
 		} else {
 			$scope.conversation.turns[$scope.currentTurn.id] = $scope.currentTurn;
 		}
+		
+		$scope.conversation_json = JSON.stringify($scope.conversation, undefined, 2);
 	};
 	
 	//on next button, save turn, put in Conversation's turn array
@@ -363,6 +373,7 @@ angular.module('dialogueFactoryApp')
 			var cFactory = new ConversationFactory();
 			$scope.conversation = cFactory.create();
 			$scope.conversation.actors.push(actor);
+			$scope.npcNames = [];
 			$scope.npcNames.push(actorName);
 		}, function() {
 			//dismissal 
@@ -443,12 +454,4 @@ angular.module('dialogueFactoryApp')
 // 						}]
 // 					}
 // 				}]
-// 	
-// 	
-// 	
-// 	
-// 	
-// 	
-// 	
-// 	
   });
