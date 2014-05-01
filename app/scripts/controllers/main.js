@@ -1,5 +1,70 @@
 'use strict';
 
+var treeData = {
+    name: "/",
+    contents: [
+        {
+            name: "Applications",
+            contents: [
+                { name: "Mail.app" },
+                { name: "iPhoto.app" },
+                { name: "Keynote.app" },
+                { name: "iTunes.app" },
+                { name: "XCode.app" },
+                { name: "Numbers.app" },
+                { name: "Pages.app" }
+            ]
+        },
+        {
+            name: "System",
+            contents: []
+        },
+        {
+            name: "Library",
+            contents: [
+                {
+                    name: "Application Support",
+                    contents: [
+                        { name: "Adobe" },
+                        { name: "Apple" },
+                        { name: "Google" },
+                        { name: "Microsoft" }
+                    ]
+                },
+                {
+                    name: "Languages",
+                    contents: [
+                        { name: "Ruby" },
+                        { name: "Python" },
+                        { name: "Javascript" },
+                        { name: "C#" }
+                    ]
+                },
+                {
+                    name: "Developer",
+                    contents: [
+                        { name: "4.2" },
+                        { name: "4.3" },
+                        { name: "5.0" },
+                        { name: "Documentation" }
+                    ]
+                }
+            ]
+        },
+        {
+            name: "opt",
+            contents: []
+        },
+        {
+            name: "Users",
+            contents: [
+                { name: "pavanpodila" },
+                { name: "admin" },
+                { name: "test-user" }
+            ]
+        }
+    ]
+};
 
 function Actor() {
 	this.name = "";
@@ -41,9 +106,26 @@ function getActorIDByValueFromConversation(conversation, actorName) {
 	return -1;
 }
 
+function getTurnByID(conversation, id) {
+	if(id === -1) {
+		return {
+			choices: []
+		};
+	}
+	for(var i in conversation.turns) {
+	
+		if(id === conversation.turns[i].id) {
+			return conversation.turns[i];
+		}
+	}
+	
+	return conversation.turns[id];
+}
+
+
 function ConversationTurn() {
-	this.id = 0;
-	this.actor = "";
+	this.id = -1;
+	this.actor = -1;
 	this.audioClip = "";
 	this.text = "";
 	this.previousTurnID = -1;
@@ -51,22 +133,39 @@ function ConversationTurn() {
 	this.choices = [
 		{
 			text: "",
-			next: -1
+// 			next: -1,
+			"next-turn": -1
 		},
 		{
 			text: "",
-			next: -1
+// 			next: -1,
+			"next-turn": -1
 		},
 		{
 			text: "",
-			next: -1
+// 			next: -1,
+			"next-turn": -1
 		},
 		{
 			text: "",
-			next: -1
+// 			next: -1,
+			"next-turn": -1
 		}
 	];
 }
+
+var turnData = {
+	choices: [
+		{
+			choices: []
+		}, {
+			choices: []
+		}, {
+			choices: []
+		}
+	]
+
+};
 
 function TurnFactory() {
 	var ids = -1;
@@ -107,9 +206,14 @@ angular.module('dialogueFactoryApp')
 	};
 
 	$scope.conversation_json = "{}";
+	$scope.canvases = [0];
+	
 	$scope.$watch('conversation', function(newVal, oldVal) {
 		var newConvo = JSON.stringify(newVal, undefined, 2);
 		$scope.conversation_json = newConvo;
+		
+		
+		rebuildGraph();
 		
 	});
 	
@@ -117,6 +221,8 @@ angular.module('dialogueFactoryApp')
 		console.log("turns changed!");
 		var newConvo = JSON.stringify($scope.conversation, undefined, 2);
 		$scope.conversation_json = newConvo;
+		
+		rebuildGraph();
 	}); 
 
 	
@@ -129,7 +235,7 @@ angular.module('dialogueFactoryApp')
 	
 	$scope.applyCurrentTurn = function() {
 	
-		$scope.currentTurn.actor = getActorIDByValueFromConversation($scope.conversation, $scope.currentTurn.actor);
+		$scope.currentTurn.actor = parseInt(getActorIDByValueFromConversation($scope.conversation, $scope.currentTurn.actor));
 		if($scope.currentTurn.id === 0)
 		{
 			$scope.conversation.turns.push($scope.currentTurn);
@@ -159,7 +265,8 @@ angular.module('dialogueFactoryApp')
 		$scope.applyCurrentTurn();
 		
 		//for now, let's just create a new one.
-		var nextRef = $scope.currentTurn.choices[choiceClicked].next;
+// 		var nextRef = $scope.currentTurn.choices[choiceClicked].next;
+		var nextRef = $scope.currentTurn.choices[choiceClicked]["next-turn"];
 		
 		console.log($scope.currentTurn.choices);
 		if(nextRef !== -1) {
@@ -169,7 +276,9 @@ angular.module('dialogueFactoryApp')
 			
 			var newTurn = tFactory.create($scope.currentTurn.id);
 			console.log("CREATING NEW TURN WITH ID: "+newTurn.id);
-			$scope.currentTurn.choices[choiceClicked].next = newTurn.id;
+// 			$scope.currentTurn.choices[choiceClicked].next = newTurn.id;
+			$scope.currentTurn.choices[choiceClicked]["next-turn"] = newTurn.id;
+			
 			$scope.currentTurn = newTurn;
 		}
 		
@@ -177,6 +286,7 @@ angular.module('dialogueFactoryApp')
 	
 	$scope.saveConversation = function() {
 		console.log("save conversation pressed!");
+		$scope.applyCurrentTurn();
 			
 		var SaveConversationModalCtrl = function($scope, $modalInstance, payload) {
 			$scope.form = {};
@@ -206,8 +316,9 @@ angular.module('dialogueFactoryApp')
 			controller: SaveConversationModalCtrl,
 			resolve: {
 				payload: function() {
-					return JSON.stringify($scope.conversation);
-				}
+					return JSON.stringify($scope.conversation, undefined, 2);
+				},
+				
 			}
 		});
 		
@@ -258,4 +369,86 @@ angular.module('dialogueFactoryApp')
 		});
 	
 	};	
+	
+	var testTurns = [
+		{
+			id: 1,
+			choices: [{
+				"next-turn": 2
+			}, {
+				"next-turn": 3
+			}]
+		}, {
+			id: 2,
+			choices: [{
+				"next-turn": 4
+			}, {
+				"next-turn": 5
+			}]
+		}, {
+			id: 3,
+			choices: []
+		}, {
+			id: 4,
+			choices: []
+		}, {
+			id: 5,
+			choices: []
+		}
+	];
+	
+	var testConversation = {
+		turns: testTurns
+	};
+	
+	//graph section
+	var rebuildGraph = function() {
+		// var tree = d3.layout.tree()
+// 					.sort(null)
+// 					.size([400, 400])
+// 					.children(function(turn) {
+// 				
+// 						var output = [];
+// 						if(typeof turn === "undefined") { return []; }
+// 						console.log("uh: "+toString(turn));
+// 						console.log(turn);
+// 						console.log("processing turn: "+turn.id);
+// 						for(var i in turn.choices) {
+// 							var choice = turn.choices[i];
+// 							console.log("Adding turn: "+choice["next-turn"]+"->"+getTurnByID(testConversation,choice["next-turn"]).id);
+// 							output.push(getTurnByID($scope.conversation,choice["next-turn"]));
+// 						}
+// 				
+// 						return (!turn.choices || turn.choices.length === 0)  ? null : output;
+// 					});
+// 
+// 		$scope.nodes = tree.nodes($scope.conversation.turns[0]);
+// 		$scope.links = tree.links($scope.nodes);
+// 		console.log($scope.conversation.turns[0]);
+	}
+	// 
+// 	turns: [{
+// 		choices: [{
+// 			next-turn: 0
+// 		}]
+// 	}
+// 	
+// 	turns: { 
+// 		choices:[{
+// 				next-turn: {
+// 					choices: [{
+// 							next-turn: { 
+// 								choices: []
+// 								}
+// 						}]
+// 					}
+// 				}]
+// 	
+// 	
+// 	
+// 	
+// 	
+// 	
+// 	
+// 	
   });

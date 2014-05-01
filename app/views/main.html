@@ -40,11 +40,11 @@
 	
 			<div style="border-radius:25px;height:auto;background-color:#eee">
 				<carousel>
-					<slide style="border-radius: 25px; height: auto; background-color: #eee" ng-repeat="message in messages">
+					<slide style="border-radius: 25px; height: auto; background-color: #eee">
 						<button class="btn btn-primary pull-left" style="margin-left: 2%; margin-top: 2%" ng-click=goToPrevious()>Previous</button>
 						<h1 style="text-align: center">Turn: {{currentTurn.id}}</h1>
 						<form class="form-horizontal" role="form">
-						<br/><br/><br/><br/>
+						<br/><br/>
 							<div class="form-group">
 								<div class="btn-group">
 								  <div class="btn-group">
@@ -65,6 +65,8 @@
 									  <li ng-repeat="clip in audioclips"><a href ng-click=selectAudioClip($index)>{{clip}}</a></li>
 									</ul>
 								  </div>
+
+
 								</div>
 								<br/><br/>
 								<div class="row">
@@ -80,7 +82,7 @@
 
 								<label class="col-sm-3 control-label"for="response1">{{response}}</label>
 								<div class="col-sm-7">
-									<input id="response1" class="form-control" type="text" ng-model=currentTurn.choices[$index].text>
+									<input id="response1" class="form-control input-sm" type="text" ng-model=currentTurn.choices[$index].text>
 								</div>
 								<div class="col-sm-2">
 									<button class="btn btn-success" ng-click=goToNext($index)><span class="glyphicon glyphicon-arrow-right"></span></button>
@@ -96,7 +98,13 @@
 		</div>
 	</tab>
 	<tab heading="graph">
-		
+		<svg ng-repeat="canvas in canvases" width="600" height="600">
+			<g class="container" transform="translate(10, 0)" >
+				<g ng-repeat="node_d in nodes" class="node" transform="translate({{node_d.y}}, {{node_d.x}})">
+					<circle class="node-dot" style="fill: black; stroke: black; stroke-width: 1px" r="5"></circle>
+				</g>
+			</g>
+		</svg>
 	</tab>
 </tabset>
 
@@ -135,7 +143,9 @@
 	
 	<div class="modal-body">
 		<!-- show JSON here -->
-		<textarea ui-codemirror="{ lineNumbers:true, mode: 'application/json', autoCloseTags: true }"></textarea>
+<!-- 		<textarea ui-codemirror="{ lineNumbers:true, mode: 'application/json', autoCloseTags: true }"></textarea> -->
+		<div ng-model=form.payload ui-ace="{theme: 'solarized_dark', mode: 'json'}">asdf</div>
+
 	</div>
 	<div class="modal-footer">
 		<button class="btn btn-primary" ng-click=ok()>OK</button>
