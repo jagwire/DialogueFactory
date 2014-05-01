@@ -184,6 +184,15 @@ angular.module('dialogueFactoryApp')
   .controller('MainCtrl', function ($scope, $modal) {
   
   
+  	$scope.zeroclipboard_client = new ZeroClipboard(document.getElementById('copy-button'));
+  	$scope.zeroclipboard_client.on("ready", function(readyEvent) {
+  		console.log("clippy ready!");
+  	
+  		$scope.zeroclipboard_client.on("aftercopy", function(event) {
+  			console.log("copied!");
+  		});
+  	});
+  
   	$scope.aceLoaded = function(_editor) {
   		console.log("ACE HAS BEEN LOADED!");	
   	};
